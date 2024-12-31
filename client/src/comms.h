@@ -18,7 +18,8 @@
 
 #ifndef COMMS_H_
 #define COMMS_H_
-
+#include <stdbool.h>
+// bool ValidateKeysrusIdentifier(void);
 #include "common.h"
 #include "pm3_cmd.h"    // Packet structs
 #include "util.h"       // FILE_PATH_SIZE

@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------------
 #ifndef __APPMAIN_H
 #define __APPMAIN_H
+#define CMD_READ_SIGNATURE 0x90  // Use a unique command code
 
 #include "common.h"
 

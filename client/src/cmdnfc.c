@@ -64,110 +64,110 @@ void print_type4_cc_info(uint8_t *d, uint8_t n) {
     PrintAndLogEx(NORMAL, "");
 }
 
-static int CmdNfcDecode(const char *Cmd) {
+// static int CmdNfcDecode(const char *Cmd) {
 
-#ifndef MAX_NDEF_LEN
-#define MAX_NDEF_LEN  2048
-#endif
+// #ifndef MAX_NDEF_LEN
+// #define MAX_NDEF_LEN  2048
+// #endif
 
-    CLIParserContext *ctx;
-    CLIParserInit(&ctx, "nfc decode",
-                  "Decode and print NFC Data Exchange Format (NDEF)\n"
-                  "You must provide either data in hex or a filename, but not both",
-                  "nfc decode -d 9101085402656e48656c6c6f5101085402656e576f726c64\n"
-                  "nfc decode -d 0103d020240203e02c040300fe\n"
-                  "nfc decode -f myfilename"
-                 );
+//     CLIParserContext *ctx;
+//     CLIParserInit(&ctx, "nfc decode",
+//                   "Decode and print NFC Data Exchange Format (NDEF)\n"
+//                   "You must provide either data in hex or a filename, but not both",
+//                   "nfc decode -d 9101085402656e48656c6c6f5101085402656e576f726c64\n"
+//                   "nfc decode -d 0103d020240203e02c040300fe\n"
+//                   "nfc decode -f myfilename"
+//                  );
 
-    void *argtable[] = {
-        arg_param_begin,
-        arg_str0("d",  "data", "<hex>", "NDEF data to decode"),
-        arg_str0("f", "file", "<fn>", "file to load"),
-        arg_lit0("v",  "verbose", "verbose output"),
-        arg_param_end
-    };
-    CLIExecWithReturn(ctx, Cmd, argtable, false);
+//     void *argtable[] = {
+//         arg_param_begin,
+//         arg_str0("d",  "data", "<hex>", "NDEF data to decode"),
+//         arg_str0("f", "file", "<fn>", "file to load"),
+//         arg_lit0("v",  "verbose", "verbose output"),
+//         arg_param_end
+//     };
+//     CLIExecWithReturn(ctx, Cmd, argtable, false);
 
-    int datalen = 0;
-    uint8_t data[MAX_NDEF_LEN] = {0};
-    CLIGetHexWithReturn(ctx, 1, data, &datalen);
+//     int datalen = 0;
+//     uint8_t data[MAX_NDEF_LEN] = {0};
+//     CLIGetHexWithReturn(ctx, 1, data, &datalen);
 
-    int fnlen = 0;
-    char filename[FILE_PATH_SIZE] = {0};
-    CLIParamStrToBuf(arg_get_str(ctx, 2), (uint8_t *)filename, FILE_PATH_SIZE, &fnlen);
+//     int fnlen = 0;
+//     char filename[FILE_PATH_SIZE] = {0};
+//     CLIParamStrToBuf(arg_get_str(ctx, 2), (uint8_t *)filename, FILE_PATH_SIZE, &fnlen);
 
-    bool verbose = arg_get_lit(ctx, 3);
-    CLIParserFree(ctx);
-    if (((datalen != 0) && (fnlen != 0)) || ((datalen == 0) && (fnlen == 0))) {
-        PrintAndLogEx(ERR, "You must provide either data in hex or a filename");
-        return PM3_EINVARG;
-    }
-    int res = PM3_SUCCESS;
-    if (fnlen != 0) {
+//     bool verbose = arg_get_lit(ctx, 3);
+//     CLIParserFree(ctx);
+//     if (((datalen != 0) && (fnlen != 0)) || ((datalen == 0) && (fnlen == 0))) {
+//         PrintAndLogEx(ERR, "You must provide either data in hex or a filename");
+//         return PM3_EINVARG;
+//     }
+//     int res = PM3_SUCCESS;
+//     if (fnlen != 0) {
 
-        // read dump file
-        uint8_t *dump = NULL;
-        size_t bytes_read = 4096;
-        res = pm3_load_dump(filename, (void **)&dump, &bytes_read, 4096);
-        if (res != PM3_SUCCESS || dump == NULL || bytes_read > 4096) {
-            return res;
-        }
+//         // read dump file
+//         uint8_t *dump = NULL;
+//         size_t bytes_read = 4096;
+//         res = pm3_load_dump(filename, (void **)&dump, &bytes_read, 4096);
+//         if (res != PM3_SUCCESS || dump == NULL || bytes_read > 4096) {
+//             return res;
+//         }
 
-        uint8_t *tmp = dump;
+//         uint8_t *tmp = dump;
 
-        // if not MIFARE Classic default sizes,  assume its Ultralight/NTAG
-        if (bytes_read != MIFARE_4K_MAX_BYTES
-                && bytes_read != MIFARE_2K_MAX_BYTES
-                && bytes_read != MIFARE_1K_MAX_BYTES
-                && bytes_read != MIFARE_MINI_MAX_BYTES) {
+//         // if not MIFARE Classic default sizes,  assume its Ultralight/NTAG
+//         if (bytes_read != MIFARE_4K_MAX_BYTES
+//                 && bytes_read != MIFARE_2K_MAX_BYTES
+//                 && bytes_read != MIFARE_1K_MAX_BYTES
+//                 && bytes_read != MIFARE_MINI_MAX_BYTES) {
 
-            uint8_t **pd = &tmp;
-            mfu_df_e df = detect_mfu_dump_format(pd, verbose);
-            if (df == MFU_DF_OLDBIN) {
-                tmp += OLD_MFU_DUMP_PREFIX_LENGTH + (4 * 4);
-                bytes_read -= OLD_MFU_DUMP_PREFIX_LENGTH + (4 * 4);
-            } else if (df == MFU_DF_NEWBIN) {
-                tmp += MFU_DUMP_PREFIX_LENGTH + (4 * 4);
-                bytes_read -= MFU_DUMP_PREFIX_LENGTH + (4 * 4);
-            }
-            pd = NULL;
+//             uint8_t **pd = &tmp;
+//             mfu_df_e df = detect_mfu_dump_format(pd, verbose);
+//             if (df == MFU_DF_OLDBIN) {
+//                 tmp += OLD_MFU_DUMP_PREFIX_LENGTH + (4 * 4);
+//                 bytes_read -= OLD_MFU_DUMP_PREFIX_LENGTH + (4 * 4);
+//             } else if (df == MFU_DF_NEWBIN) {
+//                 tmp += MFU_DUMP_PREFIX_LENGTH + (4 * 4);
+//                 bytes_read -= MFU_DUMP_PREFIX_LENGTH + (4 * 4);
+//             }
+//             pd = NULL;
 
-        } else  {
+//         } else  {
 
-            // convert from MFC dump file to a pure NDEF byte array
-            if (HasMADKey(tmp)) {
-                PrintAndLogEx(SUCCESS, "MFC dump file detected. Converting...");
-                uint8_t ndef[4096] = {0};
-                uint16_t ndeflen = 0;
+//             // convert from MFC dump file to a pure NDEF byte array
+//             if (HasMADKey(tmp)) {
+//                 PrintAndLogEx(SUCCESS, "MFC dump file detected. Converting...");
+//                 uint8_t ndef[4096] = {0};
+//                 uint16_t ndeflen = 0;
 
-                if (convert_mad_to_arr(tmp, bytes_read, ndef, &ndeflen) != PM3_SUCCESS) {
-                    PrintAndLogEx(FAILED, "Failed converting, aborting...");
-                    free(dump);
-                    return PM3_ESOFT;
-                }
+//                 if (convert_mad_to_arr(tmp, bytes_read, ndef, &ndeflen) != PM3_SUCCESS) {
+//                     PrintAndLogEx(FAILED, "Failed converting, aborting...");
+//                     free(dump);
+//                     return PM3_ESOFT;
+//                 }
 
-                memcpy(tmp, ndef, ndeflen);
-                bytes_read = ndeflen;
-            }
-        }
+//                 memcpy(tmp, ndef, ndeflen);
+//                 bytes_read = ndeflen;
+//             }
+//         }
 
-        res = NDEFDecodeAndPrint(tmp, bytes_read, verbose);
-        if (res != PM3_SUCCESS) {
-            PrintAndLogEx(INFO, "Trying to parse NDEF records w/o NDEF header");
-            res = NDEFRecordsDecodeAndPrint(tmp, bytes_read, verbose);
-        }
+//         res = NDEFDecodeAndPrint(tmp, bytes_read, verbose);
+//         if (res != PM3_SUCCESS) {
+//             PrintAndLogEx(INFO, "Trying to parse NDEF records w/o NDEF header");
+//             res = NDEFRecordsDecodeAndPrint(tmp, bytes_read, verbose);
+//         }
 
-        free(dump);
+//         free(dump);
 
-    } else {
-        res = NDEFDecodeAndPrint(data, datalen, verbose);
-        if (res != PM3_SUCCESS) {
-            PrintAndLogEx(INFO, "Trying to parse NDEF records w/o NDEF header");
-            res = NDEFRecordsDecodeAndPrint(data, datalen, verbose);
-        }
-    }
-    return res;
-}
+//     } else {
+//         res = NDEFDecodeAndPrint(data, datalen, verbose);
+//         if (res != PM3_SUCCESS) {
+//             PrintAndLogEx(INFO, "Trying to parse NDEF records w/o NDEF header");
+//             res = NDEFRecordsDecodeAndPrint(data, datalen, verbose);
+//         }
+//     }
+//     return res;
+// }
 
 static int CmdNFCType1Read(const char *Cmd) {
     return CmdHFTopazInfo(Cmd);
@@ -186,10 +186,10 @@ static command_t CommandNFCType1Table[] = {
     {NULL, NULL, NULL, NULL}
 };
 
-static int CmdNFCType1(const char *Cmd) {
-    clearCommandBuffer();
-    return CmdsParse(CommandNFCType1Table, Cmd);
-}
+// static int CmdNFCType1(const char *Cmd) {
+//     clearCommandBuffer();
+//     return CmdsParse(CommandNFCType1Table, Cmd);
+// }
 
 static int CmdNFCType1Help(const char *Cmd) {
     (void)Cmd; // Cmd is not used so far
@@ -214,10 +214,10 @@ static command_t CommandNFCType2Table[] = {
     {NULL, NULL, NULL, NULL}
 };
 
-static int CmdNFCType2(const char *Cmd) {
-    clearCommandBuffer();
-    return CmdsParse(CommandNFCType2Table, Cmd);
-}
+// static int CmdNFCType2(const char *Cmd) {
+//     clearCommandBuffer();
+//     return CmdsParse(CommandNFCType2Table, Cmd);
+// }
 
 static int CmdNFCType2Help(const char *Cmd) {
     (void)Cmd; // Cmd is not used so far
@@ -288,10 +288,10 @@ static command_t CommandNFCType4ATable[] = {
     {NULL, NULL, NULL, NULL}
 };
 
-static int CmdNFCType4A(const char *Cmd) {
-    clearCommandBuffer();
-    return CmdsParse(CommandNFCType4ATable, Cmd);
-}
+// static int CmdNFCType4A(const char *Cmd) {
+//     clearCommandBuffer();
+//     return CmdsParse(CommandNFCType4ATable, Cmd);
+// }
 
 static int CmdNFCType4AHelp(const char *Cmd) {
     (void)Cmd; // Cmd is not used so far
@@ -316,10 +316,10 @@ static command_t CommandNFCType4BTable[] = {
     {NULL, NULL, NULL, NULL}
 };
 
-static int CmdNFCType4B(const char *Cmd) {
-    clearCommandBuffer();
-    return CmdsParse(CommandNFCType4BTable, Cmd);
-}
+// static int CmdNFCType4B(const char *Cmd) {
+//     clearCommandBuffer();
+//     return CmdsParse(CommandNFCType4BTable, Cmd);
+// }
 
 static int CmdNFCType4BHelp(const char *Cmd) {
     (void)Cmd; // Cmd is not used so far
@@ -388,10 +388,10 @@ static command_t CommandMFTable[] = {
     {NULL, NULL, NULL, NULL}
 };
 
-static int CmdNFCMF(const char *Cmd) {
-    clearCommandBuffer();
-    return CmdsParse(CommandMFTable, Cmd);
-}
+// static int CmdNFCMF(const char *Cmd) {
+//     clearCommandBuffer();
+//     return CmdsParse(CommandMFTable, Cmd);
+// }
 
 static int CmdNFCMFHelp(const char *Cmd) {
     (void)Cmd; // Cmd is not used so far
@@ -415,14 +415,14 @@ static command_t CommandBarcodeTable[] = {
     {"read",        CmdNFCBarcodeRead,     IfPm3Iso14443a,  "read NFC Barcode"},
     {"sim",         CmdNFCBarcodeSim,      IfPm3Iso14443a,  "simulate NFC Barcode"},
     {"--------",    CmdNFCBarcodeHelp,     AlwaysAvailable, "--------------------- " _CYAN_("General") " ---------------------"},
-    {"help",        CmdNFCBarcodeHelp,     AlwaysAvailable, "This help"},
+ //   {"help",        CmdNFCBarcodeHelp,     AlwaysAvailable, "This help"},
     {NULL, NULL, NULL, NULL}
 };
 
-static int CmdNFCBarcode(const char *Cmd) {
-    clearCommandBuffer();
-    return CmdsParse(CommandBarcodeTable, Cmd);
-}
+// static int CmdNFCBarcode(const char *Cmd) {
+//     clearCommandBuffer();
+//     return CmdsParse(CommandBarcodeTable, Cmd);
+// }
 
 static int CmdNFCBarcodeHelp(const char *Cmd) {
     (void)Cmd; // Cmd is not used so far
@@ -430,26 +430,26 @@ static int CmdNFCBarcodeHelp(const char *Cmd) {
     return PM3_SUCCESS;
 }
 
-static int CmdHelp(const char *Cmd);
+// static int CmdHelp(const char *Cmd);
 
 static command_t CommandTable[] = {
 
-    {"--------",    CmdHelp,          AlwaysAvailable, "--------------------- " _CYAN_("NFC Tags") " --------------------"},
-    {"type1",       CmdNFCType1,      AlwaysAvailable, "{ NFC Forum Tag Type 1...             }"},
-    {"type2",       CmdNFCType2,      AlwaysAvailable, "{ NFC Forum Tag Type 2...             }"},
+  //  {"--------",    CmdHelp,          AlwaysAvailable, "--------------------- " _CYAN_("NFC Tags") " --------------------"},
+ //   {"type1",       CmdNFCType1,      AlwaysAvailable, "{ NFC Forum Tag Type 1...             }"},
+ //   {"type2",       CmdNFCType2,      AlwaysAvailable, "{ NFC Forum Tag Type 2...             }"},
 //    {"type3",       CmdNFCType3,      AlwaysAvailable, "{ NFC Forum Tag Type 3...             }"},
-    {"type4a",      CmdNFCType4A,     AlwaysAvailable, "{ NFC Forum Tag Type 4 ISO14443A...   }"},
-    {"type4b",      CmdNFCType4B,     AlwaysAvailable, "{ NFC Forum Tag Type 4 ISO14443B...   }"},
+ //   {"type4a",      CmdNFCType4A,     AlwaysAvailable, "{ NFC Forum Tag Type 4 ISO14443A...   }"},
+ //   {"type4b",      CmdNFCType4B,     AlwaysAvailable, "{ NFC Forum Tag Type 4 ISO14443B...   }"},
 //    {"type5",       CmdNFCType5,      AlwaysAvailable, "{ NFC Forum Tag Type 5...             }"},
-    {"mf",          CmdNFCMF,         AlwaysAvailable, "{ NFC Type MIFARE Classic/Plus Tag... }"},
-    {"barcode",     CmdNFCBarcode,    AlwaysAvailable, "{ NFC Barcode Tag...                  }"},
+ //   {"mf",          CmdNFCMF,         AlwaysAvailable, "{ NFC Type MIFARE Classic/Plus Tag... }"},
+ //   {"barcode",     CmdNFCBarcode,    AlwaysAvailable, "{ NFC Barcode Tag...                  }"},
 //    {"--------",    CmdHelp,          AlwaysAvailable, "--------------------- " _CYAN_("NFC peer-to-peer") " ------------"},
 //    {"isodep",      CmdISODEP,        AlwaysAvailable, "{ ISO-DEP protocol...                 }"},
 //    {"llcp",        CmdNFCLLCP,       AlwaysAvailable, "{ Logical Link Control Protocol...    }"},
 //    {"snep",        CmdNFCSNEP,       AlwaysAvailable, "{ Simple NDEF Exchange Protocol...    }"},
-    {"--------",    CmdHelp,          AlwaysAvailable, "--------------------- " _CYAN_("General") " ---------------------"},
-    {"help",        CmdHelp,          AlwaysAvailable, "This help"},
-    {"decode",      CmdNfcDecode,     AlwaysAvailable, "Decode NDEF records"},
+ //   {"--------",    CmdHelp,          AlwaysAvailable, "--------------------- " _CYAN_("General") " ---------------------"},
+  //  {"help",        CmdHelp,          AlwaysAvailable, "This help"},
+  //  {"decode",      CmdNfcDecode,     AlwaysAvailable, "Decode NDEF records"},
 //    {"encode",      CmdNfcEncode,     AlwaysAvailable, "Encode NDEF records"},
     {NULL, NULL, NULL, NULL}
 };
@@ -459,8 +459,8 @@ int CmdNFC(const char *Cmd) {
     return CmdsParse(CommandTable, Cmd);
 }
 
-int CmdHelp(const char *Cmd) {
-    (void)Cmd; // Cmd is not used so far
-    CmdsHelp(CommandTable);
-    return PM3_SUCCESS;
-}
+// int CmdHelp(const char *Cmd) {
+//     (void)Cmd; // Cmd is not used so far
+//     CmdsHelp(CommandTable);
+//     return PM3_SUCCESS;
+// }

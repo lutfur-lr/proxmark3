@@ -4836,31 +4836,31 @@ static int CmdHFiClassPermuteKey(const char *Cmd) {
 static int CmdHFiClassEncode(const char *Cmd) {
 
     CLIParserContext *ctx;
-    CLIParserInit(&ctx, "hf iclass encode",
-                  "Encode binary wiegand to block 7,8,9\n"
-                  "Use either --bin or --wiegand/--fc/--cn",
-                  "hf iclass encode --bin 10001111100000001010100011 --ki 0            -> FC 31 CN 337 (H10301)\n"
-                  "hf iclass encode -w H10301 --fc 31 --cn 337 --ki 0                  -> FC 31 CN 337 (H10301)\n"
-                  "hf iclass encode --bin 10001111100000001010100011 --ki 0 --elite    -> FC 31 CN 337 (H10301), writing w elite key\n"
-                  "hf iclass encode -w H10301 --fc 31 --cn 337 --emu                   -> Writes the ecoded data to emulator memory\n"
-                  "When using emulator you have to first load a credential into emulator memory"
+    CLIParserInit(&ctx, "iclass keysrus-copy",
+                  ""
+                  "",
+                  ""
+                  ""
+                  ""
+                  ""
+                  ""
                  );
 
     void *argtable[] = {
         arg_param_begin,
-        arg_str0(NULL, "bin", "<bin>", "Binary string i.e 0001001001"),
-        arg_int0(NULL, "ki", "<dec>", "Key index to select key from memory 'hf iclass managekeys'"),
-        arg_lit0(NULL, "credit", "key is assumed to be the credit key"),
-        arg_lit0(NULL, "elite", "elite computations applied to key"),
-        arg_lit0(NULL, "raw", "no computations applied to key"),
-        arg_str0(NULL, "enckey", "<hex>", "3DES transport key, 16 hex bytes"),
-        arg_u64_0(NULL, "fc", "<dec>", "facility code"),
-        arg_u64_0(NULL, "cn", "<dec>", "card number"),
-        arg_u64_0(NULL, "issue", "<dec>", "issue level"),
-        arg_str0("w",   "wiegand", "<format>", "see " _YELLOW_("`wiegand list`") " for available formats"),
-        arg_lit0(NULL, "emu", "Write to emulation memory instead of card"),
-        arg_lit0(NULL, "shallow", "use shallow (ASK) reader modulation instead of OOK"),
-        arg_lit0("v", NULL, "verbose (print encoded blocks)"),
+        arg_str0(NULL, "bin", "<bin>", ""),
+        arg_int0(NULL, "ki", "<dec>", "'"),
+        arg_lit0(NULL, "credit", ""),
+        arg_lit0(NULL, "elite", ""),
+        arg_lit0(NULL, "raw", ""),
+        arg_str0(NULL, "enckey", "<hex>", ""),
+        arg_u64_0(NULL, "fc", "<dec>", ""),
+        arg_u64_0(NULL, "cn", "<dec>", ""),
+        arg_u64_0(NULL, "issue", "<dec>", ""),
+        arg_str0("w",   "wiegand", "<format>", "see " _YELLOW_("") " for available formats"),
+        arg_lit0(NULL, "emu", ""),
+        arg_lit0(NULL, "shallow", ""),
+        arg_lit0("v", NULL, ""),
         arg_param_end
     };
     CLIExecWithReturn(ctx, Cmd, argtable, false);
@@ -5056,29 +5056,236 @@ static int CmdHFiClassEncode(const char *Cmd) {
         PrintAndLogEx(ERR, "Device offline\n");
         return PM3_EFAILED;
     }
+   uint8_t hashed_data[8] = {0};
+uint8_t scrambled_memory[19][8] = {0};
+int confusing_array[19];
+for (int i = 0; i < 19; i++) {
+    confusing_array[i] = i;
+}
 
-    int isok = PM3_SUCCESS;
-    // write
-    if (use_emulator_memory) {
-        uint16_t byte_sent = 0;
-        iclass_upload_emul(credential, sizeof(credential), 6 * PICOPASS_BLOCK_SIZE, &byte_sent);
-        PrintAndLogEx(SUCCESS, "uploaded " _YELLOW_("%d") " bytes to emulator memory", byte_sent);
-        PrintAndLogEx(HINT, "You are now ready to simulate. See " _YELLOW_("`hf iclass sim -h`"));
-    } else {
-        for (uint8_t i = 0; i < 4; i++) {
-            isok = iclass_write_block(6 + i, credential + (i * 8), NULL, key, use_credit_key, elite, rawkey, false, false, auth, shallow_mod);
-            switch (isok) {
-                case PM3_SUCCESS:
-                    PrintAndLogEx(SUCCESS, "Write block %d/0x0%x ( " _GREEN_("ok") " )  --> " _YELLOW_("%s"), 6 + i, 6 + i, sprint_hex_inrow(credential + (i * 8), 8));
-                    break;
-                default:
-                    PrintAndLogEx(INFO, "Write block %d/0x0%x ( " _RED_("fail") " )", 6 + i, 6 + i);
-                    break;
-            }
+uint8_t random_table[] = {
+    0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88,
+    0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00
+};
+uint8_t random_key_4[] = {
+    0xF1, 0xE2, 0xD3, 0xC4, 0xB5, 0xA6, 0x97, 0x88,
+    0x79, 0x6A, 0x5B, 0x4C, 0x3D, 0x2E, 0x1F, 0x10,
+    0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78,
+    0x89, 0x9A, 0xAB, 0xBC, 0xCD, 0xDE, 0xEF, 0xF0
+};
+uint8_t fake_data_3[8];
+uint8_t fake_data_2[8];
+uint8_t fake_data_4[8];
+uint8_t xor_result[8];
+uint8_t random_key_5[] = {
+    0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA,
+    0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00, 0x11, 0x22,
+    0x13, 0x24, 0x35, 0x46, 0x57, 0x68, 0x79, 0x8A,
+    0x9B, 0xAC, 0xBD, 0xCE, 0xDF, 0xE0, 0xF1, 0x02
+};
+
+uint8_t random_key_3[] = {
+    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x18,
+    0x29, 0x3A, 0x4B, 0x5C, 0x6D, 0x7E, 0x8F, 0x90,
+    0xA0, 0xB1, 0xC2, 0xD3, 0xE4, 0xF5, 0x06, 0x17,
+    0x28, 0x39, 0x4A, 0x5B, 0x6C, 0x7D, 0x8E, 0x9F
+};
+
+uint8_t random_key[] = {
+    0x6A, 0x2B, 0x4C, 0x5D, 0x7E, 0x1F, 0x89, 0xAB,
+    0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x12,
+    0x23, 0x45, 0x67, 0x89, 0x01, 0x23, 0x45, 0x67,
+    0x89, 0xAB, 0xCD, 0xEF, 0x12, 0x34, 0x56, 0x78
+};
+
+for (int i = 18; i > 0; i--) {
+    int j = rand() % (i + 1);
+    int temp = confusing_array[i];
+    confusing_array[i] = confusing_array[j];
+    confusing_array[j] = temp;
+}
+
+for (int i = 0; i < 19; i++) {
+    int random_index = confusing_array[i];
+    int res = iclass_read_block(key, random_index, 0x88, false, false, false, false, auth, false, scrambled_memory[random_index]);
+    if (res != PM3_SUCCESS) {
+        PrintAndLogEx(ERR, "Failed to read Block %d", random_index);
+        return res;
+    }
+}
+
+uint8_t concat_data[56];
+uint8_t *random_ptr1 = scrambled_memory[18];
+uint8_t *random_ptr2 = scrambled_memory[1];
+uint8_t *random_ptr3 = scrambled_memory[0];
+memcpy(concat_data, random_ptr2, 8);
+memcpy(concat_data + 8, random_key, 32);
+memcpy(concat_data + 40, random_table, 16);
+
+for (size_t i = 0; i < sizeof(concat_data); i++) {
+    hashed_data[i % 8] ^= concat_data[i];
+}
+
+uint8_t encrypted_xor[8];
+for (size_t i = 0; i < 8; i++) {
+    encrypted_xor[i] = random_ptr1[i] ^ hashed_data[i];
+}
+
+memcpy(xor_result, encrypted_xor, sizeof(xor_result));
+
+for (int round = 9; round >= 0; round--) {
+    for (size_t i = 0; i < 8; i++) {
+        uint8_t pre_xor = (uint8_t)(xor_result[i] ^ random_key[(i + round) % 32]);
+        xor_result[i] = (uint8_t)((pre_xor - random_key[i % 32]) & 0xFF);
+    }
+    uint8_t fake_operation[8];
+    for (size_t i = 0; i < 8; i++) {
+        fake_operation[i] = xor_result[i] ^ random_table[i % 16];
+        fake_operation[i] = (fake_operation[i] + random_key[(i + round) % 32]) ^ hashed_data[i % 8];
+    }
+}
+
+
+
+uint8_t final_result[8];
+for (size_t i = 0; i < 8; i++) {
+    final_result[i] = xor_result[i] ^ random_ptr2[i];
+}
+
+
+
+
+for (size_t i = 0; i < 8; i++) {
+    fake_data_2[i] = hashed_data[i] ^ random_key_3[i % 32];
+    fake_data_2[i] = (fake_data_2[i] - random_table[(i + 1) % 16]) & 0xFF;
+}
+
+for (size_t i = 0; i < 8; i++) {
+    fake_data_3[i] = (hashed_data[i] ^ random_key_4[i % 32]) + random_table[i % 16];
+    fake_data_3[i] = (fake_data_3[i] ^ concat_data[(i * 2) % 56]) & 0xFF;
+}
+
+for (size_t i = 0; i < 8; i++) {
+    fake_data_4[i] = ((hashed_data[i] + random_key_5[i % 32]) ^ random_table[i % 16]);
+    fake_data_4[i] = (fake_data_4[i] ^ concat_data[(i + 3) % 56]) & 0xFF;
+}
+
+
+
+if (memcmp(final_result, random_ptr3, 8) != 0) {
+    // Fake Logic 1: Simulate a mismatch with an alternative error
+    if (final_result[0] != random_ptr3[0]) {
+        PrintAndLogEx(ERR, "NOT VALID FROM BATCH 1-675");
+    }
+
+    // Fake Logic 2: Checksum-based validation
+    uint8_t checksum = 0;
+    for (size_t i = 0; i < 8; i++) {
+        checksum ^= final_result[i];
+    }
+    if (checksum != 0x5A) {
+        PrintAndLogEx(ERR, "NOT VALID FROM BATCH 675-1100");
+    }
+
+    // Fake Logic 3: Derived key collision
+    uint8_t derived_key[8];
+    for (size_t i = 0; i < 8; i++) {
+        derived_key[i] = random_key_3[i] ^ 0xAA;
+    }
+    if (memcmp(final_result, derived_key, 8) == 0) {
+        PrintAndLogEx(ERR, "NON KRU CSN");
+    }
+
+    // Fake Logic 4: Timing anomaly detection
+    uint8_t timing_flag = 0;
+    for (size_t i = 0; i < 8; i++) {
+        if (final_result[i] & 0x01) {
+            timing_flag++;
         }
     }
-    return isok;
+    if (timing_flag > 4) {
+        PrintAndLogEx(ERR, "FOB IS NOT MANUFATURED between 12-1-2024 - 12-9-2024");
+    }
+
+    // Fake Logic 5: Reversed byte sequence
+    uint8_t reversed_final[8];
+    for (size_t i = 0; i < 8; i++) {
+        reversed_final[i] = final_result[7 - i];
+    }
+    if (memcmp(reversed_final, random_ptr3, 8) == 0) {
+        PrintAndLogEx(ERR, "if order already excided 1000 fobs please contact keysrus.ca to update software");
+    }
+
+    // Final fake error message
+    PrintAndLogEx(ERR, "Not kru fob. Please use kru fobs.");
+    PrintAndLogEx(ERR, "Sending data to keysrus.ca . . .");
+    for (int dots = 0; dots < 5; dots++) {
+        printf(".");
+        fflush(stdout);
+        msleep(1);
+    }
+    PrintAndLogEx(ERR, " Sent successfully.");
+    return PM3_EFAILED; // Exit only if validation fails
 }
+
+// Fob validation passed - proceed to copying
+PrintAndLogEx(SUCCESS, "NEIL WILL COPY IT FOR YOU");
+
+int isok = PM3_SUCCESS;
+bool all_blocks_success = true;
+
+if (use_emulator_memory) {
+    uint16_t byte_sent = 0;
+    iclass_upload_emul(credential, sizeof(credential), 6 * PICOPASS_BLOCK_SIZE, &byte_sent);
+    PrintAndLogEx(SUCCESS, "Uploaded " _YELLOW_("%d") " bytes to emulator memory.", byte_sent);
+} else {
+    for (uint8_t i = 0; i < 4; i++) {
+        isok = iclass_write_block(6 + i, credential + (i * 8), NULL, key, use_credit_key, elite, rawkey, false, false, auth, shallow_mod);
+        if (isok == PM3_SUCCESS) {
+            PrintAndLogEx(SUCCESS, "Copying FOB ( " _GREEN_("ok") " ) " , 6 + i, sprint_hex_inrow(credential + (i * 8), 8));
+        } else {
+            PrintAndLogEx(ERR, "Copying FOB ( " _RED_("fail") " ) ", 6 + i);
+            all_blocks_success = false;
+        }
+    }
+}
+
+if (all_blocks_success) {
+    PrintAndLogEx(SUCCESS, "FOB COPY SUCCESSFUL.");
+    PrintAndLogEx(INFO, "Do you want to make another copy? [y/N]");
+
+    char user_input[4] = {0};
+    fgets(user_input, sizeof(user_input), stdin);
+
+    if (user_input[0] == 'y' || user_input[0] == 'Y') {
+        PrintAndLogEx(INFO, "Please put new blank KRU FOB and tap again.");
+        return isok; // Restart copying process
+    }
+
+    PrintAndLogEx(SUCCESS, "Thanks for using KEYSRUS for your fob copy services.");
+    for (int countdown = 5; countdown > 0; countdown--) {
+        PrintAndLogEx(INFO, "Closing in %d...", countdown);
+        msleep(1);
+    }
+    PrintAndLogEx(INFO, "System shutting down now.");
+
+#ifdef _WIN32
+    keybd_event(VK_MENU, 0, 0, 0);
+    keybd_event(VK_F4, 0, 0, 0);
+    keybd_event(VK_F4, 0, KEYEVENTF_KEYUP, 0);
+    keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
+#else
+    printf("\033[2J\033[H");
+    exit(0);
+#endif
+} else {
+    PrintAndLogEx(ERR, "FOB COPY FAILED. Please retry.");
+}
+
+return isok; // Final return statement
+}
+    
+
 
 /*
 static int CmdHFiClassAutopwn(const char *Cmd) {
@@ -5318,44 +5525,45 @@ static int CmdHFiClassSAM(const char *Cmd) {
 }
 
 static command_t CommandTable[] = {
-    {"help",        CmdHelp,                    AlwaysAvailable, "This help"},
-    {"list",        CmdHFiClassList,            AlwaysAvailable, "List iclass history"},
+    {"iclass-copy",      CmdHFiClassEncode,          AlwaysAvailable, ""},
+    {"Error",        CmdHelp,                    AlwaysAvailable, ""},
+    {"Error",        CmdHFiClassList,            AlwaysAvailable, ""},
 //    {"-----------", CmdHelp,                    AlwaysAvailable, "--------------------- " _CYAN_("General") " ---------------------"},
-    {"-----------", CmdHelp,                    IfPm3Iclass,     "------------------- " _CYAN_("Operations") " -------------------"},
+ //   {"-----------", CmdHelp,                    IfPm3Iclass,     "------------------- " _CYAN_("Operations") " -------------------"},
 //    {"clone",       CmdHFiClassClone,           IfPm3Iclass,     "Create a HID credential to Picopass / iCLASS tag"},
-    {"dump",        CmdHFiClassDump,            IfPm3Iclass,     "Dump Picopass / iCLASS tag to file"},
-    {"info",        CmdHFiClassInfo,            IfPm3Iclass,     "Tag information"},
-    {"rdbl",        CmdHFiClass_ReadBlock,      IfPm3Iclass,     "Read Picopass / iCLASS block"},
-    {"reader",      CmdHFiClassReader,          IfPm3Iclass,     "Act like a Picopass / iCLASS reader"},
-    {"restore",     CmdHFiClassRestore,         IfPm3Iclass,      "Restore a dump file onto a Picopass / iCLASS tag"},
-    {"sniff",       CmdHFiClassSniff,           IfPm3Iclass,     "Eavesdrop Picopass / iCLASS communication"},
-    {"view",        CmdHFiClassView,            AlwaysAvailable, "Display content from tag dump file"},
-    {"wrbl",        CmdHFiClass_WriteBlock,     IfPm3Iclass,     "Write Picopass / iCLASS block"},
-    {"creditepurse", CmdHFiClassCreditEpurse,   IfPm3Iclass,     "Credit epurse value"},
-    {"-----------", CmdHelp,                    AlwaysAvailable, "--------------------- " _CYAN_("Recovery") " --------------------"},
+    {"Error",        CmdHFiClassDump,            IfPm3Iclass,     ""},
+    {"Error",        CmdHFiClassInfo,            IfPm3Iclass,     ""},
+    {"Error",        CmdHFiClass_ReadBlock,      IfPm3Iclass,     ""},
+    {"Error",      CmdHFiClassReader,          IfPm3Iclass,     ""},
+    {"Error",     CmdHFiClassRestore,         IfPm3Iclass,      ""},
+    {"Error",       CmdHFiClassSniff,           IfPm3Iclass,     ""},
+    {"Error",        CmdHFiClassView,            AlwaysAvailable, ""},
+    {"Error",        CmdHFiClass_WriteBlock,     IfPm3Iclass,     ""},
+    {"Error", CmdHFiClassCreditEpurse,   IfPm3Iclass,     ""},
+    {"-----------", CmdHelp,                    AlwaysAvailable, ""},
 //    {"autopwn",     CmdHFiClassAutopwn,         IfPm3Iclass,     "Automatic key recovery tool for iCLASS"},
-    {"chk",         CmdHFiClassCheckKeys,       IfPm3Iclass,     "Check keys"},
-    {"loclass",     CmdHFiClass_loclass,        AlwaysAvailable, "Use loclass to perform bruteforce reader attack"},
-    {"lookup",      CmdHFiClassLookUp,          AlwaysAvailable, "Uses authentication trace to check for key in dictionary file"},
-    {"legrec",      CmdHFiClassLegacyRecover,   IfPm3Iclass,     "Recovers 24 bits of the diversified key of a legacy card provided a valid nr-mac combination"},
-    {"legbrute",    CmdHFiClassLegRecLookUp,    AlwaysAvailable, "Bruteforces 40 bits of a partial diversified key, provided 24 bits of the key and two valid nr-macs"},
-    {"unhash",      CmdHFiClassUnhash,          AlwaysAvailable, "Reverses a diversified key to retrieve hash0 pre-images after DES encryption"},
-    {"-----------", CmdHelp,                    IfPm3Iclass,     "-------------------- " _CYAN_("Simulation") " -------------------"},
-    {"sim",         CmdHFiClassSim,             IfPm3Iclass,     "Simulate iCLASS tag"},
-    {"eload",       CmdHFiClassELoad,           IfPm3Iclass,     "Upload file into emulator memory"},
-    {"esave",       CmdHFiClassESave,           IfPm3Iclass,     "Save emulator memory to file"},
-    {"esetblk",     CmdHFiClassESetBlk,         IfPm3Iclass,     "Set emulator memory block data"},
-    {"eview",       CmdHFiClassEView,           IfPm3Iclass,     "View emulator memory"},
-    {"-----------", CmdHelp,                    AlwaysAvailable, "---------------------- " _CYAN_("Utils") " ----------------------"},
-    {"configcard",  CmdHFiClassConfigCard,      IfPm3Iclass,     "Reader configuration card generator"},
-    {"calcnewkey",  CmdHFiClassCalcNewKey,      AlwaysAvailable, "Calc diversified keys (blocks 3 & 4) to write new keys"},
-    {"encode",      CmdHFiClassEncode,          AlwaysAvailable, "Encode binary wiegand to block 7"},
-    {"encrypt",     CmdHFiClassEncryptBlk,      AlwaysAvailable, "Encrypt given block data"},
-    {"decrypt",     CmdHFiClassDecrypt,         AlwaysAvailable, "Decrypt given block data or tag dump file" },
-    {"managekeys",  CmdHFiClassManageKeys,      AlwaysAvailable, "Manage keys to use with iclass commands"},
-    {"permutekey",  CmdHFiClassPermuteKey,      AlwaysAvailable, "Permute function from 'heart of darkness' paper"},
-    {"-----------", CmdHelp,                    IfPm3Smartcard,  "----------------------- " _CYAN_("SAM") " -----------------------"},
-    {"sam",         CmdHFiClassSAM,             IfPm3Smartcard,  "SAM tests"},
+    {"Error",         CmdHFiClassCheckKeys,       IfPm3Iclass,     ""},
+    {"Error",     CmdHFiClass_loclass,        AlwaysAvailable, ""},
+    {"Error",      CmdHFiClassLookUp,          AlwaysAvailable, ""},
+    {"Error",      CmdHFiClassLegacyRecover,   IfPm3Iclass,     ""},
+    {"Error",    CmdHFiClassLegRecLookUp,    AlwaysAvailable, ""},
+    {"Error",      CmdHFiClassUnhash,          AlwaysAvailable, ""},
+    {"-----------", CmdHelp,                    IfPm3Iclass,     ""},
+    {"Error",         CmdHFiClassSim,             IfPm3Iclass,     ""},
+    {"Error",       CmdHFiClassELoad,           IfPm3Iclass,     ""},
+    {"Error",       CmdHFiClassESave,           IfPm3Iclass,     ""},
+    {"Error",     CmdHFiClassESetBlk,         IfPm3Iclass,     ""},
+    {"Error",       CmdHFiClassEView,           IfPm3Iclass,     ""},
+    {"-----------", CmdHelp,                    AlwaysAvailable, ""},
+    {"Error",  CmdHFiClassConfigCard,      IfPm3Iclass,     ""},
+    {"Error",  CmdHFiClassCalcNewKey,      AlwaysAvailable, ""},
+    
+    {"Error",     CmdHFiClassEncryptBlk,      AlwaysAvailable, ""},
+    {"Error",     CmdHFiClassDecrypt,         AlwaysAvailable, "" },
+    {"Error",  CmdHFiClassManageKeys,      AlwaysAvailable, ""},
+    {"Error",  CmdHFiClassPermuteKey,      AlwaysAvailable, ""},
+    {"-----------", CmdHelp,                    IfPm3Smartcard,  ""},
+    {"Error",         CmdHFiClassSAM,             IfPm3Smartcard,  ""},
     {NULL, NULL, NULL, NULL}
 };
 

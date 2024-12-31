@@ -1548,7 +1548,7 @@ int CmdHW(const char *Cmd) {
 #endif
 
 void pm3_version_short(void) {
-    PrintAndLogEx(NORMAL, "  [ " _CYAN_("Proxmark3 RFID instrument") " ]");
+   // PrintAndLogEx(NORMAL, "  [ " _CYAN_("Proxmark3 RFID instrument") " ]");
     PrintAndLogEx(NORMAL, "");
 
     if (g_session.pm3_present) {
@@ -1649,7 +1649,7 @@ void pm3_version(bool verbose, bool oneliner) {
     if (!verbose)
         return;
 
-    PrintAndLogEx(NORMAL, "\n [ " _YELLOW_("Proxmark3 RFID instrument") " ]");
+   // PrintAndLogEx(NORMAL, "\n [ " _YELLOW_("Proxmark3 RFID instrument") " ]");
     PrintAndLogEx(NORMAL, "\n [ " _YELLOW_("Client") " ]");
     FormatVersionInformation(temp, sizeof(temp), "  ", &g_version_information);
     PrintAndLogEx(NORMAL, "%s", temp);

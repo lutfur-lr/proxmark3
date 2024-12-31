@@ -19,6 +19,7 @@
 #include "pm3.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "proxmark3.h"
 #include "cmdmain.h"
@@ -28,22 +29,59 @@
 #include "comms.h"
 #include "preferences.h"
 
+#define IDENTIFIER "Keysrus"
+#define IDENTIFIER_OFFSET 0x1FFF0
+#define IDENTIFIER_LENGTH 8
+
+static bool ValidateKeysrusIdentifier(void) {
+    uint8_t buffer[IDENTIFIER_LENGTH] = {0};
+    PacketResponseNG response;
+
+    // Send a command to read the firmware memory
+    SendCommandMIX(CMD_READ_MEM_DOWNLOAD, IDENTIFIER_OFFSET, IDENTIFIER_LENGTH, 0, NULL, 0);
+    if (!WaitForResponse(CMD_READ_MEM_DOWNLOADED, &response)) {
+        PrintAndLogEx(ERR, _RED_("ERROR:") " Failed to read firmware memory.\n");
+        return false;
+    }
+
+    // Check if the identifier matches
+    memcpy(buffer, response.data.asBytes, IDENTIFIER_LENGTH);
+    if (strncmp((char *)buffer, IDENTIFIER, IDENTIFIER_LENGTH) == 0) {
+        PrintAndLogEx(SUCCESS, "Keysrus identifier validated successfully.\n");
+        return true;
+    }
+
+    PrintAndLogEx(ERR, _RED_("ERROR:") " This device didn't flash with Keysrus software.\n");
+    return false;
+}
+
+// Modified pm3_open function to include validation
 pm3_device_t *pm3_open(const char *port) {
     pm3_init();
     preferences_load();
+
+      // Validate the Keysrus identifier
+    if (!ValidateKeysrusIdentifier()) {
+        PrintAndLogEx(ERR, _RED_("ERROR:") " Device validation failed. Exiting.\n");
+        exit(EXIT_FAILURE); // Exit if validation fails
+    }
+
+    PrintAndLogEx(SUCCESS, "Keysrus identifier validated successfully.\n");
+
     OpenProxmark(&g_session.current_device, port, false, 20, false, USART_BAUD_RATE);
     if (g_session.pm3_present && (TestProxmark(g_session.current_device) != PM3_SUCCESS)) {
-        PrintAndLogEx(ERR, _RED_("ERROR:") " cannot communicate with the Proxmark3\n");
+        PrintAndLogEx(ERR, _RED_("ERROR:") " Cannot communicate with the Proxmark3.\n");
         CloseProxmark(g_session.current_device);
     }
 
-    if ((port != NULL) && (!g_session.pm3_present))
+    if ((port != NULL) && (!g_session.pm3_present)) {
         exit(EXIT_FAILURE);
+    }
 
     if (!g_session.pm3_present) {
         PrintAndLogEx(INFO, _RED_("OFFLINE") " mode");
     }
-    // For now, there is no real device context:
+
     return g_session.current_device;
 }
 

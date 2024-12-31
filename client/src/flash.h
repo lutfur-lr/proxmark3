@@ -39,6 +39,8 @@ typedef struct {
     int can_write_bl;
     int num_segs;
     flash_seg_t *segments;
+    
+    uint32_t elf_size; // Add this to store the ELF file size
 } flash_file_t;
 
 int flash_load(flash_file_t *ctx, bool force);

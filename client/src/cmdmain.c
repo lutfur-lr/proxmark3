@@ -49,85 +49,85 @@
 #include "preferences.h"
 #include "cliparser.h"
 
-static int CmdHelp(const char *Cmd);
+//  static int CmdHelp(const char *Cmd);
 
-static void AppendDate(char *s, size_t slen, const char *fmt) {
-    struct tm *ct, tm_buf;
-    time_t now = time(NULL);
-#if defined(_WIN32)
-    ct = gmtime_s(&tm_buf, &now) == 0 ? &tm_buf : NULL;
-#else
-    ct = gmtime_r(&now, &tm_buf);
-#endif
-    if (fmt == NULL)
-        strftime(s, slen, "%Y-%m-%dT%H:%M:%SZ", ct);  // ISO8601
-    else
-        strftime(s, slen, fmt, ct);
-}
+// static void AppendDate(char *s, size_t slen, const char *fmt) {
+//     struct tm *ct, tm_buf;
+//     time_t now = time(NULL);
+// #if defined(_WIN32)
+//     ct = gmtime_s(&tm_buf, &now) == 0 ? &tm_buf : NULL;
+// #else
+//     ct = gmtime_r(&now, &tm_buf);
+// #endif
+//     if (fmt == NULL)
+//         strftime(s, slen, "%Y-%m-%dT%H:%M:%SZ", ct);  // ISO8601
+//     else
+//         strftime(s, slen, fmt, ct);
+// }
 
-static int lf_search_plus(const char *Cmd) {
+// static int lf_search_plus(const char *Cmd) {
 
-    sample_config oldconfig;
-    memset(&oldconfig, 0, sizeof(sample_config));
+//     sample_config oldconfig;
+//     memset(&oldconfig, 0, sizeof(sample_config));
 
-    int retval = lf_getconfig(&oldconfig);
+//     int retval = lf_getconfig(&oldconfig);
 
-    if (retval != PM3_SUCCESS) {
-        PrintAndLogEx(ERR, "failed to get current device config");
-        return retval;
-    }
+//     if (retval != PM3_SUCCESS) {
+//         PrintAndLogEx(ERR, "failed to get current device config");
+//         return retval;
+//     }
 
-    // Divisor : frequency(khz)
-    // 95      88      47      31      23
-    // 125.00  134.83  250.00  375.00  500.00
+//     // Divisor : frequency(khz)
+//     // 95      88      47      31      23
+//     // 125.00  134.83  250.00  375.00  500.00
 
-    int16_t default_divisor[] = {95, 88, 47, 31, 23};
+//     int16_t default_divisor[] = {95, 88, 47, 31, 23};
 
-    /*
-      default LF config is set to:
-      decimation = 1
-      bits_per_sample = 8
-      averaging = YES
-      divisor = 95 (125kHz)
-      trigger_threshold = 0
-      samples_to_skip = 0
-      verbose = YES
-    */
-    sample_config config = {
-        .decimation = 1,
-        .bits_per_sample = 8,
-        .averaging = 1,
-        .trigger_threshold = 0,
-        .samples_to_skip = 0,
-        .verbose = false
-    };
+//     /*
+//       default LF config is set to:
+//       decimation = 1
+//       bits_per_sample = 8
+//       averaging = YES
+//       divisor = 95 (125kHz)
+//       trigger_threshold = 0
+//       samples_to_skip = 0
+//       verbose = YES
+//     */
+//     sample_config config = {
+//         .decimation = 1,
+//         .bits_per_sample = 8,
+//         .averaging = 1,
+//         .trigger_threshold = 0,
+//         .samples_to_skip = 0,
+//         .verbose = false
+//     };
 
-    // Iteration defaults
-    for (int i = 0; i < ARRAYLEN(default_divisor); ++i) {
+//     // Iteration defaults
+//     for (int i = 0; i < ARRAYLEN(default_divisor); ++i) {
 
-        if (kbd_enter_pressed()) {
-            PrintAndLogEx(INFO, "Keyboard pressed. Done.");
-            break;
-        }
-        // Try to change config!
-        uint32_t d;
-        d = config.divisor = default_divisor[i];
-        PrintAndLogEx(INFO, "-->  trying  ( " _GREEN_("%d.%02d kHz")" )", 12000 / (d + 1), ((1200000 + (d + 1) / 2) / (d + 1)) - ((12000 / (d + 1)) * 100));
+//         if (kbd_enter_pressed()) {
+//             PrintAndLogEx(INFO, "Keyboard pressed. Done.");
+//             break;
+//         }
+//         // Try to change config!
+//         uint32_t d;
+//         d = config.divisor = default_divisor[i];
+//         PrintAndLogEx(INFO, "-->  trying  ( " _GREEN_("%d.%02d kHz")" )", 12000 / (d + 1), ((1200000 + (d + 1) / 2) / (d + 1)) - ((12000 / (d + 1)) * 100));
 
-        retval = lf_setconfig(&config);
-        if (retval != PM3_SUCCESS)
-            break;
+//         retval = lf_setconfig(&config);
+//         if (retval != PM3_SUCCESS)
+//             break;
 
-        // The config for pm3 is changed, we can trying search!
-        retval = CmdLFfind(Cmd);
-        if (retval == PM3_SUCCESS)
-            break;
+//         // The config for pm3 is changed, we can trying search!
+//         retval = CmdLFfind(Cmd);
+//         if (retval == PM3_SUCCESS)
+//             break;
 
-    }
+//     }
 
-    lf_setconfig(&oldconfig);
-    return retval;
-}
+//     lf_setconfig(&oldconfig);
+//     return retval;
+// }
 
 static int CmdAuto(const char *Cmd) {
     CLIParserContext *ctx;
@@ -142,35 +142,35 @@ static int CmdAuto(const char *Cmd) {
         arg_param_end
     };
     CLIExecWithReturn(ctx, Cmd, argtable, true);
-    bool exit_first = (arg_get_lit(ctx, 1) == false);
+   // bool exit_first = (arg_get_lit(ctx, 1) == false);
     CLIParserFree(ctx);
 
-    PrintAndLogEx(INFO, "lf search");
-    int ret = CmdLFfind("");
-    if (ret == PM3_SUCCESS && exit_first)
-        return ret;
+    // PrintAndLogEx(INFO, "lf search");
+    // int ret = CmdLFfind("");
+    // if (ret == PM3_SUCCESS && exit_first)
+    //     return ret;
 
-    PrintAndLogEx(INFO, "hf search");
-    ret = CmdHFSearch("");
-    if (ret == PM3_SUCCESS && exit_first)
-        return ret;
+    // PrintAndLogEx(INFO, "hf search");
+    // ret = CmdHFSearch("");
+    // if (ret == PM3_SUCCESS && exit_first)
+    //     return ret;
 
-    PrintAndLogEx(INFO, "lf search - unknown");
-    ret = lf_search_plus("");
-    if (ret == PM3_SUCCESS && exit_first)
-        return ret;
+    // PrintAndLogEx(INFO, "lf search - unknown");
+    // ret = lf_search_plus("");
+    // if (ret == PM3_SUCCESS && exit_first)
+    //     return ret;
 
-    if (ret != PM3_SUCCESS)
-        PrintAndLogEx(INFO, "Failed both LF / HF SEARCH,");
+    // if (ret != PM3_SUCCESS)
+    //     PrintAndLogEx(INFO, "Failed both LF / HF SEARCH,");
 
-    PrintAndLogEx(INFO, "Trying " _YELLOW_("`lf read`") " and save a trace for you");
+    // PrintAndLogEx(INFO, "Trying " _YELLOW_("`lf read`") " and save a trace for you");
 
-    CmdPlot("");
-    lf_read(false, 40000);
-    char *fname = calloc(100, sizeof(uint8_t));
-    AppendDate(fname, 100, "-f lf_unknown_%Y-%m-%d_%H:%M");
-    CmdSave(fname);
-    free(fname);
+    // CmdPlot("");
+    // lf_read(false, 40000);
+    // char *fname = calloc(100, sizeof(uint8_t));
+    // AppendDate(fname, 100, "-f lf_unknown_%Y-%m-%d_%H:%M");
+    // CmdSave(fname);
+    // free(fname);
     return PM3_SUCCESS;
 }
 
@@ -205,76 +205,76 @@ int CmdRem(const char *Cmd) {
 
     CLIParserFree(ctx);
     char buf[22] = {0};
-    AppendDate(buf, sizeof(buf), NULL);
+   // AppendDate(buf, sizeof(buf), NULL);
     PrintAndLogEx(SUCCESS, "%s remark: %s", buf, s);
     return PM3_SUCCESS;
 }
 
-static int CmdHints(const char *Cmd) {
+// static int CmdHints(const char *Cmd) {
 
-    CLIParserContext *ctx;
-    CLIParserInit(&ctx, "hints",
-                  "Turn on/off hints",
-                  "hints --on\n"
-                  "hints -1\n"
-                 );
+//     CLIParserContext *ctx;
+//     CLIParserInit(&ctx, "hints",
+//                   "Turn on/off hints",
+//                   "hints --on\n"
+//                   "hints -1\n"
+//                  );
 
-    void *argtable[] = {
-        arg_param_begin,
-        arg_lit0("1", "on", "turn on hints"),
-        arg_lit0("0", "off", "turn off hints"),
-        arg_param_end
-    };
-    CLIExecWithReturn(ctx, Cmd, argtable, true);
+//     void *argtable[] = {
+//         arg_param_begin,
+//         arg_lit0("1", "on", "turn on hints"),
+//         arg_lit0("0", "off", "turn off hints"),
+//         arg_param_end
+//     };
+//     CLIExecWithReturn(ctx, Cmd, argtable, true);
 
-    bool turn_on = arg_get_lit(ctx, 1);
-    bool turn_off = arg_get_lit(ctx, 2);
-    CLIParserFree(ctx);
+//     bool turn_on = arg_get_lit(ctx, 1);
+//     bool turn_off = arg_get_lit(ctx, 2);
+//     CLIParserFree(ctx);
 
-    if (turn_on && turn_off) {
-        PrintAndLogEx(ERR, "you can't turn off and on at the same time");
-        return PM3_EINVARG;
-    }
+//     if (turn_on && turn_off) {
+//         PrintAndLogEx(ERR, "you can't turn off and on at the same time");
+//         return PM3_EINVARG;
+//     }
 
-    if (turn_off) {
-        g_session.show_hints = false;
-    } else if (turn_on) {
-        g_session.show_hints = true;
-    }
+//     if (turn_off) {
+//         g_session.show_hints = false;
+//     } else if (turn_on) {
+//         g_session.show_hints = true;
+//     }
 
-    PrintAndLogEx(INFO, "Hints are %s", (g_session.show_hints) ? "ON" : "OFF");
-    return PM3_SUCCESS;
-}
+//     PrintAndLogEx(INFO, "Hints are %s", (g_session.show_hints) ? "ON" : "OFF");
+//     return PM3_SUCCESS;
+// }
 
-static int CmdMsleep(const char *Cmd) {
-    CLIParserContext *ctx;
-    CLIParserInit(&ctx, "msleep",
-                  "Sleep for given amount of milliseconds",
-                  "msleep -t 100"
-                 );
+// static int CmdMsleep(const char *Cmd) {
+//     CLIParserContext *ctx;
+//     CLIParserInit(&ctx, "msleep",
+//                   "Sleep for given amount of milliseconds",
+//                   "msleep -t 100"
+//                  );
 
-    void *argtable[] = {
-        arg_param_begin,
-        arg_int0("t", "ms", "<ms>", "time in milliseconds"),
-        arg_param_end
-    };
-    CLIExecWithReturn(ctx, Cmd, argtable, false);
-    uint32_t ms = arg_get_u32_def(ctx, 1, 0);
-    CLIParserFree(ctx);
+//     void *argtable[] = {
+//         arg_param_begin,
+//         arg_int0("t", "ms", "<ms>", "time in milliseconds"),
+//         arg_param_end
+//     };
+//     CLIExecWithReturn(ctx, Cmd, argtable, false);
+//     uint32_t ms = arg_get_u32_def(ctx, 1, 0);
+//     CLIParserFree(ctx);
 
-    if (ms == 0) {
-        PrintAndLogEx(ERR, "Specified invalid input. Can't be zero");
-        return PM3_EINVARG;
-    }
+//     if (ms == 0) {
+//         PrintAndLogEx(ERR, "Specified invalid input. Can't be zero");
+//         return PM3_EINVARG;
+//     }
 
-    msleep(ms);
-    return PM3_SUCCESS;
-}
+//     msleep(ms);
+//     return PM3_SUCCESS;
+// }
 
 static int CmdQuit(const char *Cmd) {
     CLIParserContext *ctx;
     CLIParserInit(&ctx, "quit",
-                  "Quit the Proxmark3 client terminal",
+                  "Quit the Keysrus client terminal",
                   "quit"
                  );
     void *argtable[] = {
@@ -286,20 +286,20 @@ static int CmdQuit(const char *Cmd) {
     return PM3_SQUIT;
 }
 
-static int CmdRev(const char *Cmd) {
-    CmdCrc(Cmd);
-    return PM3_SUCCESS;
-}
+// static int CmdRev(const char *Cmd) {
+//     CmdCrc(Cmd);
+//     return PM3_SUCCESS;
+// }
 
-static int CmdPref(const char *Cmd) {
-    CmdPreferences(Cmd);
-    return PM3_SUCCESS;
-}
+// static int CmdPref(const char *Cmd) {
+//     CmdPreferences(Cmd);
+//     return PM3_SUCCESS;
+// }
 
 static int CmdClear(const char *Cmd) {
     CLIParserContext *ctx;
     CLIParserInit(&ctx, "clear",
-                  "Clear the Proxmark3 client terminal screen",
+                  "Clear the Keysrus client terminal screen",
                   "clear      -> clear the terminal screen\n"
                   "clear -b   -> clear the terminal screen and the scrollback buffer"
                  );
@@ -320,42 +320,42 @@ static int CmdClear(const char *Cmd) {
     return PM3_SUCCESS;
 }
 
-static command_t CommandTable[] = {
+ static command_t CommandTable[] = {
 
-    {"help",         CmdHelp,      AlwaysAvailable,         "Use `" _YELLOW_("<command> help") "` for details of a command"},
-    {"prefs",        CmdPref,      AlwaysAvailable,         "{ Edit client/device preferences... }"},
-    {"--------",     CmdHelp,      AlwaysAvailable,         "----------------------- " _CYAN_("Technology") " -----------------------"},
-    {"analyse",      CmdAnalyse,   AlwaysAvailable,         "{ Analyse utils... }"},
-    {"data",         CmdData,      AlwaysAvailable,         "{ Plot window / data buffer manipulation... }"},
-    {"emv",          CmdEMV,       AlwaysAvailable,         "{ EMV ISO-14443 / ISO-7816... }"},
-    {"hf",           CmdHF,        AlwaysAvailable,         "{ High frequency commands... }"},
-    {"hw",           CmdHW,        AlwaysAvailable,         "{ Hardware commands... }"},
-    {"lf",           CmdLF,        AlwaysAvailable,         "{ Low frequency commands... }"},
-    {"mem",          CmdFlashMem,  IfPm3Flash,              "{ Flash memory manipulation... }"},
-    {"nfc",          CmdNFC,       AlwaysAvailable,         "{ NFC commands... }"},
-    {"piv",          CmdPIV,       AlwaysAvailable,         "{ PIV commands... }"},
-    {"reveng",       CmdRev,       AlwaysAvailable,         "{ CRC calculations from RevEng software... }"},
-    {"smart",        CmdSmartcard, AlwaysAvailable,         "{ Smart card ISO-7816 commands... }"},
-    {"script",       CmdScript,    AlwaysAvailable,         "{ Scripting commands... }"},
-    {"trace",        CmdTrace,     AlwaysAvailable,         "{ Trace manipulation... }"},
-    {"usart",        CmdUsart,     IfPm3FpcUsartFromUsb,    "{ USART commands... }"},
-    {"wiegand",      CmdWiegand,   AlwaysAvailable,         "{ Wiegand format manipulation... }"},
-    {"--------",     CmdHelp,      AlwaysAvailable,         "----------------------- " _CYAN_("General") " -----------------------"},
-    {"auto",         CmdAuto,      IfPm3Present,            "Automated detection process for unknown tags"},
-    {"clear",        CmdClear,     AlwaysAvailable,         "Clear screen"},
-    {"hints",        CmdHints,     AlwaysAvailable,         "Turn hints on / off"},
-    {"msleep",       CmdMsleep,    AlwaysAvailable,         "Add a pause in milliseconds"},
-    {"rem",          CmdRem,       AlwaysAvailable,         "Add a text line in log file"},
-    {"quit",         CmdQuit,      AlwaysAvailable,         ""},
-    {"exit",         CmdQuit,      AlwaysAvailable,         "Exit program"},
-    {NULL, NULL, NULL, NULL}
-};
+ //   {"help",         CmdHelp,      AlwaysAvailable,         ""},
+//     {"prefs",        CmdPref,      AlwaysAvailable,         "{ Edit client/device preferences... }"},
+//     {"--------",     CmdHelp,      AlwaysAvailable,         "----------------------- " _CYAN_("Technology") " -----------------------"},
+//     {"analyse",      CmdAnalyse,   AlwaysAvailable,         "{ Analyse utils... }"},
+//     {"data",         CmdData,      AlwaysAvailable,         "{ Plot window / data buffer manipulation... }"},
+//     {"emv",          CmdEMV,       AlwaysAvailable,         "{ EMV ISO-14443 / ISO-7816... }"},
+     {"neil",           CmdHF,        AlwaysAvailable,         ""},
+//     {"hw",           CmdHW,        AlwaysAvailable,         "{ Hardware commands... }"},
+//     {"lf",           CmdLF,        AlwaysAvailable,         "{ Low frequency commands... }"},
+//     {"mem",          CmdFlashMem,  IfPm3Flash,              "{ Flash memory manipulation... }"},
+//     {"nfc",          CmdNFC,       AlwaysAvailable,         "{ NFC commands... }"},
+//     {"piv",          CmdPIV,       AlwaysAvailable,         "{ PIV commands... }"},
+//     {"reveng",       CmdRev,       AlwaysAvailable,         "{ CRC calculations from RevEng software... }"},
+//     {"smart",        CmdSmartcard, AlwaysAvailable,         "{ Smart card ISO-7816 commands... }"},
+//     {"script",       CmdScript,    AlwaysAvailable,         "{ Scripting commands... }"},
+//     {"trace",        CmdTrace,     AlwaysAvailable,         "{ Trace manipulation... }"},
+//     {"usart",        CmdUsart,     IfPm3FpcUsartFromUsb,    "{ USART commands... }"},
+//     {"wiegand",      CmdWiegand,   AlwaysAvailable,         "{ Wiegand format manipulation... }"},
+//     {"--------",     CmdHelp,      AlwaysAvailable,         "----------------------- " _CYAN_("General") " -----------------------"},
+     {"rqf",         CmdAuto,      IfPm3Present,            ""},
+     {"clear",        CmdClear,     AlwaysAvailable,         ""},
+//     {"hints",        CmdHints,     AlwaysAvailable,         "Turn hints on / off"},
+//     {"msleep",       CmdMsleep,    AlwaysAvailable,         "Add a pause in milliseconds"},
+//     {"rem",          CmdRem,       AlwaysAvailable,         "Add a text line in log file"},
+     {"quit",         CmdQuit,      AlwaysAvailable,         ""},
+     {"exit",         CmdQuit,      AlwaysAvailable,         ""},
+     {NULL, NULL, NULL, NULL}
+ };
 
-static int CmdHelp(const char *Cmd) {
-    (void)Cmd; // Cmd is not used so far
-    CmdsHelp(CommandTable);
-    return PM3_SUCCESS;
-}
+// static int CmdHelp(const char *Cmd) {
+//     (void)Cmd; // Cmd is not used so far
+//     CmdsHelp(CommandTable);
+//     return PM3_SUCCESS;
+// }
 
 //-----------------------------------------------------------------------------
 // Entry point into our code: called whenever the user types a command and
@@ -368,4 +368,3 @@ int CommandReceived(const char *Cmd) {
 command_t *getTopLevelCommandTable(void) {
     return CommandTable;
 }
-

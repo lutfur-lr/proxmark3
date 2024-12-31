@@ -48,7 +48,7 @@ static int mainret = PM3_SUCCESS;
 
 #ifndef LIBPM3
 #define BANNERMSG1 ""
-#define BANNERMSG2 "   [ :coffee: ]"
+#define BANNERMSG2 "   [ :key: ]"
 #define BANNERMSG3 ""
 
 typedef enum LogoMode { UTF8, ANSI, ASCII } LogoMode;
@@ -80,27 +80,30 @@ static void showBanner_logo(LogoMode mode) {
             break;
         }
         case ANSI: {
-            PrintAndLogEx(NORMAL, "  " _CYAN_("8888888b.  888b     d888  .d8888b.   "));
-            PrintAndLogEx(NORMAL, "  " _CYAN_("888   Y88b 8888b   d8888 d88P  Y88b  "));
-            PrintAndLogEx(NORMAL, "  " _CYAN_("888    888 88888b.d88888      .d88P  "));
-            PrintAndLogEx(NORMAL, "  " _CYAN_("888   d88P 888Y88888P888     8888\"  "));
-            PrintAndLogEx(NORMAL, "  " _CYAN_("8888888P\"  888 Y888P 888      \"Y8b.  "));
-            PrintAndLogEx(NORMAL, "  " _CYAN_("888        888  Y8P  888 888    888  "));
-            PrintAndLogEx(NORMAL, "  " _CYAN_("888        888   \"   888 Y88b  d88P") " " BANNERMSG1);
-            PrintAndLogEx(NORMAL, "  " _CYAN_("888        888       888  \"Y8888P\"") " " BANNERMSG2);
+            PrintAndLogEx(NORMAL, "  " _CYAN_(" db   dD d88888b db    db .d8888. d8888b. db    db .d8888. "));
+            PrintAndLogEx(NORMAL, "  " _CYAN_(" 88 ,8P' 88'     `8b  d8' 88'  YP 88  `8D 88    88 88'  YP "));
+            PrintAndLogEx(NORMAL, "  " _CYAN_(" 88,8P   88ooooo  `8bd8'  `8bo.   88oobY' 88    88 `8bo.   "));
+            PrintAndLogEx(NORMAL, "  " _CYAN_(" 88`8b   88~~~~~    88      `Y8b. 88`8b   88    88   `Y8b. "));
+            PrintAndLogEx(NORMAL, "  " _CYAN_(" 88 `88. 88.        88    db   8D 88 `88. 88b  d88 db   8D ")  " " BANNERMSG1);
+            PrintAndLogEx(NORMAL, "  " _CYAN_(" YP   YD Y88888P    YP    `8888Y' 88   YD ~Y8888P' `8888Y' ")  " " BANNERMSG2);
             break;
         }
+                   
+                                                                                                                        
         case ASCII: {
-            PrintAndLogEx(NORMAL, "  8888888b.  888b     d888  .d8888b.     ");
-            PrintAndLogEx(NORMAL, "  888   Y88b 8888b   d8888 d88P  Y88b    ");
-            PrintAndLogEx(NORMAL, "  888    888 88888b.d88888      .d88P    ");
-            PrintAndLogEx(NORMAL, "  888   d88P 888Y88888P888     8888\"    ");
-            PrintAndLogEx(NORMAL, "  8888888P\"  888 Y888P 888      \"Y8b.  ");
-            PrintAndLogEx(NORMAL, "  888        888  Y8P  888 888    888    ");
-            PrintAndLogEx(NORMAL, "  888        888   \"   888 Y88b  d88P " BANNERMSG1);
-            PrintAndLogEx(NORMAL, "  888        888       888  \"Y8888P\" " BANNERMSG2);
+            PrintAndLogEx(NORMAL, "  db   dD d88888b db    db .d8888. d8888b. db    db .d8888. ");
+            PrintAndLogEx(NORMAL, "  88 ,8P' 88'     `8b  d8' 88'  YP 88  `8D 88    88 88'  YP ");
+            PrintAndLogEx(NORMAL, "  88,8P   88ooooo  `8bd8'  `8bo.   88oobY' 88    88 `8bo.   ");
+            PrintAndLogEx(NORMAL, "  88`8b   88~~~~~    88      `Y8b. 88`8b   88    88   `Y8b. ");
+            PrintAndLogEx(NORMAL, "  88 `88. 88.        88    db   8D 88 `88. 88b  d88 db   8D " BANNERMSG1);
+            PrintAndLogEx(NORMAL, "  YP   YD Y88888P    YP    `8888Y' 88   YD ~Y8888P' `8888Y' " BANNERMSG2);
             break;
         }
+
+        
+                                                                
+                                                          
+                                                                                                                   
     }
     PrintAndLogEx(NORMAL, "");
     PrintAndLogEx(NORMAL, BANNERMSG3);
@@ -225,7 +228,7 @@ static void showBanner(void) {
 
     PrintAndLogEx(NORMAL, "");
     PrintAndLogEx(NORMAL, "  [ " _YELLOW_("%s!")" ]", get_quote());
-    PrintAndLogEx(NORMAL, "     Patreon - https://www.patreon.com/iceman1001/");
+    PrintAndLogEx(NORMAL, "     Author - https://keysrus.ca/product/blank-iclass-fob/");
     PrintAndLogEx(NORMAL, "");
 //    PrintAndLogEx(NORMAL, "   Monero");
 //    PrintAndLogEx(NORMAL, " 43mNJLpgBVaTvyZmX9ajcohpvVkaRy1kbZPm8tqAb7itZgfuYecgkRF36rXrKFUkwEGeZedPsASRxgv4HPBHvJwyJdyvQuP");

@@ -31,6 +31,36 @@
 #include "util_darwin.h" // en/dis-ableNapp();
 #include "usart_defs.h"
 
+
+// #define IDENTIFIER "Keysrus"
+// #define IDENTIFIER_OFFSET 0x1FFF0 // Offset in flash memory
+// #define IDENTIFIER_LENGTH 8      // Length of the identifier
+// bool ValidateKeysrusIdentifier(void) {
+//     uint8_t buffer[IDENTIFIER_LENGTH] = {0};
+//     PacketResponseNG response;
+
+//     PrintAndLogEx(INFO, "Reading Keysrus identifier from device memory...\n");
+
+//     // Send a memory read command to the Proxmark3
+//     SendCommandMIX(CMD_READ_MEM_DOWNLOAD, IDENTIFIER_OFFSET, IDENTIFIER_LENGTH, 0, NULL, 0);
+//     if (!WaitForResponse(CMD_READ_MEM_DOWNLOADED, &response)) {
+//         PrintAndLogEx(ERR, _RED_("ERROR:") " Failed to read memory.\n");
+//         return false;
+//     }
+
+//     // Copy the response data
+//     memcpy(buffer, response.data.asBytes, IDENTIFIER_LENGTH);
+//     PrintAndLogEx(INFO, "Read value: %s\n", buffer);
+
+//     // Validate the identifier
+//     if (strncmp((char *)buffer, IDENTIFIER, IDENTIFIER_LENGTH) == 0) {
+//         PrintAndLogEx(SUCCESS, "Keysrus identifier validated successfully.\n");
+//         return true;
+//     }
+
+//     PrintAndLogEx(ERR, _RED_("ERROR:") " This device didn't flash with Keysrus software.\n");
+//     return false;
+// }
 // #define COMMS_DEBUG
 // #define COMMS_DEBUG_RAW
 
@@ -431,7 +461,7 @@ __attribute__((force_align_arg_pointer))
         if (commfailed) {
             if (g_conn.last_command != CMD_HARDWARE_RESET &&
                     g_conn.last_command != CMD_START_FLASH) {
-                PrintAndLogEx(WARNING, "\nCommunicating with Proxmark3 device " _RED_("failed"));
+               // PrintAndLogEx(WARNING, "\nCommunicating with Proxmark3 device " _RED_("failed"));
             }
             __atomic_test_and_set(&comm_thread_dead, __ATOMIC_SEQ_CST);
             break;
@@ -770,7 +800,7 @@ bool OpenProxmarkSilent(pm3_device_t **dev, const char *port, uint32_t speed) {
 bool OpenProxmark(pm3_device_t **dev, const char *port, bool wait_for_port, int timeout, bool flash_mode, uint32_t speed) {
 
     if (wait_for_port == false) {
-        PrintAndLogEx(SUCCESS, "Using UART port " _GREEN_("%s"), port);
+        PrintAndLogEx(SUCCESS, "Welcome To Keysrus");
         sp = uart_open(port, speed, false);
     } else {
         PrintAndLogEx(SUCCESS, "Waiting for Proxmark3 to appear on " _YELLOW_("%s"), port);
@@ -875,15 +905,15 @@ int TestProxmark(pm3_device_t *dev) {
     g_conn.uart_speed = g_pm3_capabilities.baudrate;
 
     bool is_tcp_conn = (g_conn.send_via_ip == PM3_TCPv4 || g_conn.send_via_ip == PM3_TCPv6);
-    bool is_bt_conn = (memcmp(g_conn.serial_port_name, "bt:", 3) == 0);
+   // bool is_bt_conn = (memcmp(g_conn.serial_port_name, "bt:", 3) == 0);
     bool is_udp_conn = (g_conn.send_via_ip == PM3_UDPv4 || g_conn.send_via_ip == PM3_UDPv6);
 
-    PrintAndLogEx(SUCCESS, "Communicating with PM3 over %s%s%s%s",
-                  (g_conn.send_via_fpc_usart) ? _GREEN_("FPC UART") : _GREEN_("USB-CDC"),
-                  (is_tcp_conn) ? " over " _GREEN_("TCP") : "",
-                  (is_bt_conn) ? " over " _GREEN_("BT") : "",
-                  (is_udp_conn) ? " over " _GREEN_("UDP") : ""
-                 );
+    // PrintAndLogEx(SUCCESS, "Communicating with PM3 over %s%s%s%s",
+    //               (g_conn.send_via_fpc_usart) ? _GREEN_("FPC UART") : _GREEN_("USB-CDC"),
+    //               (is_tcp_conn) ? " over " _GREEN_("TCP") : "",
+    //               (is_bt_conn) ? " over " _GREEN_("BT") : "",
+    //               (is_udp_conn) ? " over " _GREEN_("UDP") : ""
+    //              );
     if (g_conn.send_via_fpc_usart) {
         PrintAndLogEx(SUCCESS, "PM3 UART serial baudrate: " _GREEN_("%u") "\n", g_conn.uart_speed);
     } else {

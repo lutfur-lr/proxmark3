@@ -82,6 +82,8 @@
 #include "flashmem.h"
 #include "spiffs.h"
 #endif
+#define CUSTOM_MARKER "keysrus"
+const char custom_marker[] __attribute__((section(".custom_marker"))) = CUSTOM_MARKER;
 
 int g_dbglevel = DBG_ERROR;
 uint8_t g_trigger = 0;
@@ -271,70 +273,77 @@ extern uint32_t _bootphase1_version_pointer[], _flash_start[], _flash_end[], __d
 extern uint32_t _bootrom_end[], _bootrom_start[], __os_size__[];
 #endif
 static void SendVersion(void) {
-    char temp[PM3_CMD_DATA_SIZE - 12]; /* Limited data payload in USB packets */
-    char VersionString[PM3_CMD_DATA_SIZE - 12] = { '\0' };
-
-    /* Try to find the bootrom version information. Expect to find a pointer at
-     * symbol _bootphase1_version_pointer, perform slight sanity checks on the
-     * pointer, then use it.
-     */
-    // dummy casting to avoid "dereferencing type-punned pointer breaking strict-aliasing rules" errors
-    uint32_t bootrom_version_ptr = (uint32_t)_bootphase1_version_pointer;
-    char *bootrom_version = *(char **)(bootrom_version_ptr);
-
-    strncat(VersionString, " [ "_YELLOW_("ARM")" ]\n", sizeof(VersionString) - strlen(VersionString) - 1);
-
-    if ((uint32_t)bootrom_version < (uint32_t)_flash_start || (uint32_t)bootrom_version >= (uint32_t)_flash_end) {
-        strcat(VersionString, "bootrom version information appears invalid\n");
-    } else {
-        FormatVersionInformation(temp, sizeof(temp), "  bootrom: ", bootrom_version);
-        strncat(VersionString, temp, sizeof(VersionString) - strlen(VersionString) - 1);
-        strncat(VersionString, "\n", sizeof(VersionString) - strlen(VersionString) - 1);
-    }
+    
+    Dbprintf("welcome to keysrus iclass fob  clonner workstation");
+    Dbprintf("Author: Keysrus");
+    Dbprintf("v:1.8");
 
 
-    FormatVersionInformation(temp, sizeof(temp), "       os: ", &g_version_information);
-    strncat(VersionString, temp, sizeof(VersionString) - strlen(VersionString) - 1);
-    strncat(VersionString, "\n", sizeof(VersionString) - strlen(VersionString) - 1);
 
-#if defined(__clang__)
-    strncat(VersionString, "  compiled with Clang/LLVM "__VERSION__"\n", sizeof(VersionString) - strlen(VersionString) - 1);
-#elif defined(__GNUC__) || defined(__GNUG__)
-    strncat(VersionString, "  compiled with GCC "__VERSION__"\n", sizeof(VersionString) - strlen(VersionString) - 1);
-#endif
+//     char temp[PM3_CMD_DATA_SIZE - 12]; /* Limited data payload in USB packets */
+//     char VersionString[PM3_CMD_DATA_SIZE - 12] = { '\0' };
 
-    strncat(VersionString, "\n [ "_YELLOW_("FPGA")" ] \n ", sizeof(VersionString) - strlen(VersionString) - 1);
+//     /* Try to find the bootrom version information. Expect to find a pointer at
+//      * symbol _bootphase1_version_pointer, perform slight sanity checks on the
+//      * pointer, then use it.
+//      */
+//     // dummy casting to avoid "dereferencing type-punned pointer breaking strict-aliasing rules" errors
+//     uint32_t bootrom_version_ptr = (uint32_t)_bootphase1_version_pointer;
+//     char *bootrom_version = *(char **)(bootrom_version_ptr);
 
-    for (int i = 0; i < g_fpga_bitstream_num; i++) {
-        strncat(VersionString, g_fpga_version_information[i].versionString, sizeof(VersionString) - strlen(VersionString) - 1);
-        if (i < g_fpga_bitstream_num - 1) {
-            strncat(VersionString, "\n ", sizeof(VersionString) - strlen(VersionString) - 1);
-        }
-    }
-#ifdef WITH_COMPRESSION
-    // Send Chip ID and used flash memory
-    uint32_t text_and_rodata_section_size = (uint32_t)__data_src_start__ - (uint32_t)_flash_start;
-    uint32_t compressed_data_section_size = g_common_area.arg1;
-#endif
+//     strncat(VersionString, " [ "_YELLOW_("ARM")" ]\n", sizeof(VersionString) - strlen(VersionString) - 1);
 
-    struct p {
-        uint32_t id;
-        uint32_t section_size;
-        uint32_t versionstr_len;
-        char versionstr[PM3_CMD_DATA_SIZE - 12];
-    } PACKED;
+//     if ((uint32_t)bootrom_version < (uint32_t)_flash_start || (uint32_t)bootrom_version >= (uint32_t)_flash_end) {
+//         strcat(VersionString, "bootrom version information appears invalid\n");
+//     } else {
+//         FormatVersionInformation(temp, sizeof(temp), "  bootrom: ", bootrom_version);
+//         strncat(VersionString, temp, sizeof(VersionString) - strlen(VersionString) - 1);
+//         strncat(VersionString, "\n", sizeof(VersionString) - strlen(VersionString) - 1);
+//     }
 
-    struct p payload;
-    payload.id = *(AT91C_DBGU_CIDR);
-#ifndef WITH_COMPRESSION
-    payload.section_size = (uint32_t)_bootrom_end - (uint32_t)_bootrom_start + (uint32_t)__os_size__;
-#else
-    payload.section_size = text_and_rodata_section_size + compressed_data_section_size;
-#endif
-    payload.versionstr_len = strlen(VersionString) + 1;
-    memcpy(payload.versionstr, VersionString, payload.versionstr_len);
 
-    reply_ng(CMD_VERSION, PM3_SUCCESS, (uint8_t *)&payload, 12 + payload.versionstr_len);
+//     FormatVersionInformation(temp, sizeof(temp), "       os: ", &g_version_information);
+//     strncat(VersionString, temp, sizeof(VersionString) - strlen(VersionString) - 1);
+//     strncat(VersionString, "\n", sizeof(VersionString) - strlen(VersionString) - 1);
+
+// #if defined(__clang__)
+//     strncat(VersionString, "  compiled with Clang/LLVM "__VERSION__"\n", sizeof(VersionString) - strlen(VersionString) - 1);
+// #elif defined(__GNUC__) || defined(__GNUG__)
+//     strncat(VersionString, "  compiled with GCC "__VERSION__"\n", sizeof(VersionString) - strlen(VersionString) - 1);
+// #endif
+
+//     strncat(VersionString, "\n [ "_YELLOW_("FPGA")" ] \n ", sizeof(VersionString) - strlen(VersionString) - 1);
+
+//     for (int i = 0; i < g_fpga_bitstream_num; i++) {
+//         strncat(VersionString, g_fpga_version_information[i].versionString, sizeof(VersionString) - strlen(VersionString) - 1);
+//         if (i < g_fpga_bitstream_num - 1) {
+//             strncat(VersionString, "\n ", sizeof(VersionString) - strlen(VersionString) - 1);
+//         }
+//     }
+// #ifdef WITH_COMPRESSION
+//     // Send Chip ID and used flash memory
+//     uint32_t text_and_rodata_section_size = (uint32_t)__data_src_start__ - (uint32_t)_flash_start;
+//     uint32_t compressed_data_section_size = g_common_area.arg1;
+// #endif
+
+//     struct p {
+//         uint32_t id;
+//         uint32_t section_size;
+//         uint32_t versionstr_len;
+//         char versionstr[PM3_CMD_DATA_SIZE - 12];
+//     } PACKED;
+
+//     struct p payload;
+//     payload.id = *(AT91C_DBGU_CIDR);
+// #ifndef WITH_COMPRESSION
+//     payload.section_size = (uint32_t)_bootrom_end - (uint32_t)_bootrom_start + (uint32_t)__os_size__;
+// #else
+//     payload.section_size = text_and_rodata_section_size + compressed_data_section_size;
+// #endif
+//     payload.versionstr_len = strlen(VersionString) + 1;
+//     memcpy(payload.versionstr, VersionString, payload.versionstr_len);
+
+//     reply_ng(CMD_VERSION, PM3_SUCCESS, (uint8_t *)&payload, 12 + payload.versionstr_len);
 }
 
 static void TimingIntervalAcquisition(void) {
